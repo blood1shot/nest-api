@@ -24,12 +24,70 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[Nest](https://github.com/nestjs/nest) Starter API with JWT authorization that use PostgreSQL as DB.
 
 ## Installation
 
 ```bash
 $ yarn install
+```
+
+## Setup Prisma
+
+```bash
+# init prisma
+$ npx prisma init
+```
+
+Configurate your .env file
+
+```bash
+DATABASE_URL="postgresql://username:password@localhost:your-port/dbname?schema=public"
+```
+
+## Setup Docker
+
+You should edit docker-compose file with own credentials to PostgreSQL DB and make sure the credentials in .env matches the credentials in the docker-compose file
+
+```bash
+# docker-compose.yml
+version: '3'
+services:
+  db:
+    image: postgres:12
+    ports:
+      - your-port:your-port
+    environment:
+      POSTGRES_USER: your-username
+      POSTGRES_PASSWORD: your-password
+      POSTGRES_DB: your-db-name
+```
+
+And after configuration run this command in your terminal
+
+```bash
+docker-compose up
+```
+
+## Run prisma migrations and push them to DB
+
+Run migration and type name of migration. After that push them to DB
+
+```bash
+# run prisma migration
+$ npx prisma migrate dev --create-only
+
+# push migrations to DB
+$ npx prisma db push
+```
+
+## Open prisma studio
+
+Open prisma studio for development
+
+```bash
+# open prisma studio
+$ npx prisma studio
 ```
 
 ## Running the app
@@ -39,7 +97,7 @@ $ yarn install
 $ yarn run start
 
 # watch mode
-$ yarn run start:dev
+$ yarn run dev
 
 # production mode
 $ yarn run start:prod
@@ -58,13 +116,9 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
 ## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
+- Author - [Oleksii](https://github.com/blood1shot)
 - Website - [https://nestjs.com](https://nestjs.com/)
 - Twitter - [@nestframework](https://twitter.com/nestframework)
 
