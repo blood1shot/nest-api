@@ -19,7 +19,7 @@ RUN npm ci
 COPY --chown=node:node . .
 
 # Generate Prisma database client code
-RUN npm run prisma:generate
+RUN npx prisma generate
 
 # Use the node user from the image (instead of the root user)
 USER node
