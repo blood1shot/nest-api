@@ -29,56 +29,21 @@
 ## Installation
 
 ```bash
-$ yarn install
+$ npm install
 ```
 
-## Setup Prisma
+## Run Docker
+
+Build your application
 
 ```bash
-# init prisma
-$ npx prisma init
+docker-compose up -d -V --build
 ```
 
-Configurate your .env file
+And after docker-compose finish building containers run this command in your terminal to create migrations to your db
 
 ```bash
-DATABASE_URL="postgresql://username:password@localhost:your-port/dbname?schema=public"
-```
-
-## Setup Docker
-
-You should edit docker-compose file with own credentials to PostgreSQL DB and make sure the credentials in .env matches the credentials in the docker-compose file
-
-```bash
-# docker-compose.yml
-version: '3'
-services:
-  db:
-    image: postgres:12
-    ports:
-      - your-port:your-port
-    environment:
-      POSTGRES_USER: your-username
-      POSTGRES_PASSWORD: your-password
-      POSTGRES_DB: your-db-name
-```
-
-And after configuration run this command in your terminal
-
-```bash
-docker-compose up
-```
-
-## Run prisma migrations and push them to DB
-
-Run migration and type name of migration. After that push them to DB
-
-```bash
-# run prisma migration
-$ npx prisma migrate dev --create-only
-
-# push migrations to DB
-$ npx prisma db push
+npx prisma migrate dev
 ```
 
 ## Open prisma studio
@@ -120,7 +85,6 @@ $ yarn run test:cov
 
 - Author - [Oleksii](https://github.com/blood1shot)
 - Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
