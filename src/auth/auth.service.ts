@@ -1,19 +1,21 @@
-import { AuthDto } from './dto';
+import { AuthDto, CreateUserDto } from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { Tokens } from './types';
+import { Tokens, Logout, VerifyAccess } from './types';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
-  async signupLocal(dto: AuthDto): Promise<Tokens> {
+  async signupLocal(dto: CreateUserDto): Promise<Tokens> {
     const hash = await this.hashData(dto.password);
 
     const newUser = await this.prisma.user.create({
       data: {
+        firstname: dto.firstname,
+        lastname: dto.lastname,
         email: dto.email,
         hash,
       },
@@ -40,7 +42,8 @@ export class AuthService {
     await this.updateRtHash(user.id, tokens.refresh_token);
     return tokens;
   }
-  async logout(userId: number) {
+
+  async logout(userId: number): Promise<Logout> {
     await this.prisma.user.updateMany({
       where: {
         id: userId,
@@ -52,9 +55,11 @@ export class AuthService {
         hashedRt: null,
       },
     });
+    return { message: 'Logged out successfully' };
   }
 
   async refreshTokens(userId: number, refreshToken: string) {
+    console.log(refreshToken);
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -69,6 +74,10 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRtHash(user.id, tokens.refresh_token);
     return tokens;
+  }
+
+  async verifyAccess(): Promise<VerifyAccess> {
+    return { message: 'Access approved.' };
   }
 
   async updateRtHash(userId: number, refreshToken: string) {
