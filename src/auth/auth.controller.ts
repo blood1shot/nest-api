@@ -58,17 +58,6 @@ export class AuthController {
     return this.authService.logout(userId);
   }
 
-  // @Public()
-  // @UseGuards(RtGuard)
-  // @Post('refresh')
-  // @ApiBearerAuth()
-  // @HttpCode(HttpStatus.OK)
-  // refreshTokens(
-  //   @GetCurrentUserId() userId: number,
-  //   @GetCurrentUser('refreshToken') refreshToken: string,
-  // ) {
-  //   return this.authService.refreshTokens(userId, refreshToken);
-  // }
   @Public()
   @UseGuards(RtGuard)
   @Post('refresh')

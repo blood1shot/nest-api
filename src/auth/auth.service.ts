@@ -4,25 +4,21 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { Tokens, Logout, VerifyAccess } from './types';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private usersService: UsersService,
+  ) {}
 
   async signupLocal(dto: CreateUserDto): Promise<Tokens> {
-    const hash = await this.hashData(dto.password);
-
-    const newUser = await this.prisma.user.create({
-      data: {
-        firstname: dto.firstname,
-        lastname: dto.lastname,
-        email: dto.email,
-        hash,
-      },
-    });
+    const newUser = await this.usersService.createUser(dto);
 
     const tokens = await this.getTokens(newUser.id, newUser.email);
-    await this.updateRtHash(newUser.id, tokens.refresh_token);
+    await this.usersService.updateUserRtHash(newUser.id, tokens.refresh_token);
     return tokens;
   }
 
@@ -39,61 +35,35 @@ export class AuthService {
     if (!passwordMatches) throw new ForbiddenException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.usersService.updateUserRtHash(user.id, tokens.refresh_token);
     return tokens;
   }
 
   async logout(userId: number): Promise<Logout> {
-    await this.prisma.user.updateMany({
-      where: {
-        id: userId,
-        hashedRt: {
-          not: null,
-        },
-      },
-      data: {
-        hashedRt: null,
-      },
-    });
+    await this.usersService.deleteUserRtHash(userId);
+
     return { message: 'Logged out successfully' };
   }
 
   async refreshTokens(userId: number, refreshToken: string) {
-    console.log(refreshToken);
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
 
-    if (!user || !user.hashedRt) throw new ForbiddenException('Access denied');
+    if (!user.hashedRt) throw new ForbiddenException('Access denied');
 
     const rtMatches = await bcrypt.compare(refreshToken, user.hashedRt);
     if (!rtMatches) throw new ForbiddenException('Access denied');
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.usersService.updateUserRtHash(user.id, tokens.refresh_token);
     return tokens;
   }
 
   async verifyAccess(): Promise<VerifyAccess> {
     return { message: 'Access approved.' };
-  }
-
-  async updateRtHash(userId: number, refreshToken: string) {
-    const hash = await this.hashData(refreshToken);
-    await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        hashedRt: hash,
-      },
-    });
-  }
-
-  hashData(data: string) {
-    return bcrypt.hash(data, 10);
   }
 
   async getTokens(userId: number, email: string): Promise<Tokens> {
